@@ -2,21 +2,6 @@ from gpt import gpt
 import re
 import time
 
-
-transcript = """
-P1: Hello, how are you.
-P2: I am fine, thank you.
-P1: That's good to hear.
-P2: Yes, it is.
-P1: What are you up to?
-P2: Not much, just relaxing.
-P1: Sounds nice, but I have a huge rash on my back.
-P2: "Uh, okay."
-P1: Oh also, I forgot to tell you about how I won at Cal Hacks. I went there with nothing and totally blew everyone away. We won first place and 2 thousand dollars.
-P2: Okay, talk to you later.
-P1: Bye!
-"""
-
 transcripts = [
     """P1: Hey, how's it going?
 P2: Pretty good, just finished a workout.
@@ -55,10 +40,12 @@ P1: Anyway, I’m probably rambling. I’ll let you get back to it."""
 ]
 
 
+
 def parse_transcript(transcript):
     transcript = transcript.replace("...", ".")
-    transcript = re.split(r'[.!?]', transcript)
-    transcript = [t+"." for t in transcript]
+    # transcript = re.split(r'[.!?]', transcript)
+    transcript = transcript.split("P1")
+    transcript = ["P1"+t for t in transcript if len(t) > 1]
     print(len(transcript))
     # exit()
     texts = []
@@ -67,26 +54,30 @@ def parse_transcript(transcript):
         time.sleep(0.3)  
         
         texts.append(transcript[i])
+
         
         prompt = '''
-        Read this conversation and return a single word that will tell us if P1 is making one of the following conversaional mistakes
-        1. Two or three sentences said by P1 before the other person talks : return "TALKING"
+        Read this conversation turn and return a single word that will tell us if P1 is making one of the following conversaional mistakes
+        1. Two or three sentences said by P1 before the other person talks (rambling): return "TALKING"
         2. Saying something goofy or embarassing: return "GOOFY:
         3. No conversational mistakes: return "NONE"
 
-        If P2 is currently talking, return "NONE"
         '''
 
-        prompt += "".join(texts)
+        prompt += transcript[i]
 
-        response = gpt(prompt, model="gpt-4o")
+        response = gpt(prompt, model="gpt-4o-mini")
 
-        if response != "NONE":
-            texts = []
+        # if response != "NONE":
+        #     texts = []
         print(transcript[i])
         print(response)
 
+        if response == "NONE":
+            return ""
+        else:
+            return response
 
-for transcript in transcripts[1:]:
+for transcript in transcripts[0:]:
     parse_transcript(transcript)
     break
